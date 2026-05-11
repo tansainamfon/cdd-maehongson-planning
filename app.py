@@ -211,9 +211,4 @@ elif step == "Step 7: สรุปและ Export PDF":
             data=PDFbyte,
             file_name="MaeHongSon_CD_Plan.pdf",
             mime='application/octet-stream'
-        
-   
-      
-
-     
-       
+        )
