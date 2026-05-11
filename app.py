@@ -164,23 +164,52 @@ elif step == "Step 4: TOWS Matrix (วิเคราะห์อัตโนม
 
 # --- STEP 7: EXPORT PDF ---
 elif step == "Step 7: สรุปและ Export PDF":
+    st.header("📊 ขั้นตอนที่ 7: สรุปแผนพัฒนาเชิงพื้นที่แบบบูรณาการ")
+    st.write("ตรวจสอบความถูกต้องของข้อมูลทั้งหมดก่อนทำการ Export เป็นไฟล์รายงาน")
+
+    # ==========================================
+    # ส่วนที่ 1: แสดงผลข้อมูลสรุปบนหน้าเว็บไซต์ (Web Preview)
+    # ==========================================
+    with st.container(border=True):
+        st.subheader("📍 1. ความเชื่อมโยงยุทธศาสตร์ (Strategic Alignment)")
+        st.info("สอดคล้องกับแผนพัฒนาจังหวัดแม่ฮ่องสอน, แผนพัฒนาเศรษฐกิจและสังคมแห่งชาติ ฉบับที่ 13 และยุทธศาสตร์ชาติ 20 ปี")
+
+        st.subheader("🌍 2. ปัจจัยภายนอก (บริบทพื้นที่แม่ฮ่องสอน)")
+        col_o, col_t = st.columns(2)
+        with col_o:
+            st.markdown("**🌟 โอกาส (Opportunities):**")
+            st.write(st.session_state.opps)
+        with col_t:
+            st.markdown("**🔥 อุปสรรค (Threats):**")
+            st.write(st.session_state.threats)
+
+        st.subheader("🧠 3. กลยุทธ์การพัฒนา (TOWS Strategy)")
+        st.success(f"**🎯 เชิงรุก (SO):** {st.session_state.so_strat}")
+        st.info(f"**🛠️ เชิงแก้ไข (WO):** {st.session_state.wo_strat}")
+        st.warning(f"**🛡️ เชิงป้องกัน (ST):** {st.session_state.st_strat}")
+        st.error(f"**⚠️ เชิงรับ (WT):** {st.session_state.wt_strat}")
+
+    st.markdown("---")
+
+    # ==========================================
+    # ส่วนที่ 2: ระบบ Export ไฟล์ PDF
+    # ==========================================
     st.header("📄 สร้างและดาวน์โหลดเอกสาร (PDF Export)")
+    st.write("หากข้อมูลด้านบนถูกต้องแล้ว สามารถกดปุ่มด้านล่างเพื่อสร้างไฟล์รายงาน PDF ได้เลยครับ")
     
     def generate_pdf():
         pdf = FPDF()
         pdf.add_page()
         
-        if os.path.exists("THSarabunNew.ttf"):
-            pdf.add_font('THSarabunNew', '', 'THSarabunNew.ttf', uni=True)
-            pdf.set_font('THSarabunNew', '', 18)
-        else:
-            pdf.set_font('Arial', 'B', 16)
+        # ผูกฟอนต์ภาษาไทย
+        pdf.add_font('THSarabunNew', '', 'THSarabunNew.ttf', uni=True)
+        pdf.set_font('THSarabunNew', '', 18)
             
         pdf.cell(200, 10, txt="รายงานการวิเคราะห์แผนพัฒนาชุมชนเชิงพื้นที่แบบบูรณาการ", ln=True, align='C')
         pdf.cell(200, 10, txt="(จังหวัดแม่ฮ่องสอน)", ln=True, align='C')
         pdf.ln(10)
         
-        pdf.set_font('THSarabunNew', '', 16) if os.path.exists("THSarabunNew.ttf") else pdf.set_font('Arial', '', 12)
+        pdf.set_font('THSarabunNew', '', 16)
         
         pdf.cell(200, 10, txt="1. ความเชื่อมโยงยุทธศาสตร์ (Strategic Alignment):", ln=True)
         pdf.multi_cell(0, 10, txt="- สอดคล้องกับแผนพัฒนาจังหวัดแม่ฮ่องสอน, แผนพัฒนาเศรษฐกิจและสังคมแห่งชาติ ฉบับที่ 13 และยุทธศาสตร์ชาติ 20 ปี")
@@ -200,15 +229,25 @@ elif step == "Step 7: สรุปและ Export PDF":
         
         pdf.output("maehongson_cd_plan.pdf")
 
-    if st.button("ประมวลผลข้อมูลสร้างไฟล์ PDF"):
-        generate_pdf()
-        with open("maehongson_cd_plan.pdf", "rb") as pdf_file:
-            PDFbyte = pdf_file.read()
+    # สร้างปุ่มกดเพื่อออกเอกสาร
+    if st.button("🖨️ ประมวลผลข้อมูลสร้างไฟล์ PDF"):
+        # เช็คก่อนว่ามีไฟล์ฟอนต์ในระบบหรือยัง
+        if not os.path.exists("THSarabunNew.ttf"):
+            st.error("❌ ระบบไม่พบไฟล์ฟอนต์ 'THSarabunNew.ttf' กรุณาอัปโหลดไฟล์ลงใน GitHub ก่อนครับ")
+        else:
+            try:
+                generate_pdf()
+                with open("maehongson_cd_plan.pdf", "rb") as pdf_file:
+                    PDFbyte = pdf_file.read()
 
-        st.success("✅ สร้างไฟล์สำเร็จ!")
-        st.download_button(
-            label="📥 ดาวน์โหลดไฟล์แผนพัฒนา (PDF)",
-            data=PDFbyte,
-            file_name="MaeHongSon_CD_Plan.pdf",
-            mime='application/octet-stream'
-        )
+                st.success("✅ สร้างไฟล์สำเร็จ! กรุณากดปุ่มด้านล่างเพื่อดาวน์โหลด")
+                st.download_button(
+                    label="📥 ดาวน์โหลดไฟล์แผนพัฒนา (PDF)",
+                    data=PDFbyte,
+                    file_name="MaeHongSon_CD_Plan.pdf",
+                    mime='application/octet-stream'
+                )
+            except Exception as e:
+                st.error(f"❌ เกิดข้อผิดพลาดในการสร้างเอกสาร: {e}")
+       
+           
