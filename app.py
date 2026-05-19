@@ -22,11 +22,12 @@ if 'wo_strat' not in st.session_state: st.session_state.wo_strat = ""
 if 'st_strat' not in st.session_state: st.session_state.st_strat = ""
 if 'wt_strat' not in st.session_state: st.session_state.wt_strat = ""
 if 'auto_generated' not in st.session_state: st.session_state.auto_generated = False
+if 'auto_vision' not in st.session_state: st.session_state.auto_vision = False
 
 # Session State สำหรับ Step 5 และ 6
 if 'vision' not in st.session_state: st.session_state.vision = "มุ่งสู่องค์กรแห่งความสุข 'ฮ่องสอน ฮอมฮัก' ชุมชนเข้มแข็ง เศรษฐกิจฐานรากมั่นคง"
 if 'mission' not in st.session_state: st.session_state.mission = "1. ยกระดับคุณภาพชีวิตชุมชน\n2. ส่งเสริมสัมมาชีพและรายได้\n3. บูรณาการภาคีเครือข่ายการพัฒนา"
-if 'kpi' not in st.session_state: st.session_state.kpi = "รายได้เฉลี่ยของชุมชนเป้าหมายเพิ่มขึ้นร้อยละ 5 ต่อปี"
+if 'kpi' not in st.session_state: st.session_state.kpi = "1. รายได้เฉลี่ยของชุมชนเพิ่มขึ้น\n2. ระดับความสุขของคนในองค์กรและชุมชนผ่านเกณฑ์"
 if 'projects' not in st.session_state: st.session_state.projects = pd.DataFrame(columns=['ชื่อโครงการ', 'งบประมาณ', 'กลยุทธ์ที่รองรับ'])
 
 # --- Sidebar: Navigation ---
@@ -47,7 +48,7 @@ if step == "Step 1: IP Matrix (ปัจจัยภายใน)":
     st.header("📍 ขั้นตอนที่ 1: วิเคราะห์งานพัฒนาชุมชน (IP Matrix)")
     with st.form("ip_form"):
         col1, col2, col3 = st.columns([3, 1, 1])
-        topic = col1.text_input("ประเด็นการพัฒนาพื้นที่")
+        topic = col1.text_input("ประเด็นการพัฒนาพื้นที่ (เช่น สัมมาชีพ, OTOP, กองทุนสตรี)")
         imp = col2.slider("Importance (ความสำคัญ)", 1, 5, 3)
         perf = col3.slider("Performance (ผลงานที่ทำได้จริง)", 1, 5, 3)
         submit = st.form_submit_button("บันทึกข้อมูล")
@@ -55,6 +56,7 @@ if step == "Step 1: IP Matrix (ปัจจัยภายใน)":
             new_data = pd.DataFrame({'ประเด็น': [topic], 'Importance': [imp], 'Performance': [perf]})
             st.session_state.ip_data = pd.concat([st.session_state.ip_data, new_data], ignore_index=True)
             st.session_state.auto_generated = False
+            st.session_state.auto_vision = False
 
     if not st.session_state.ip_data.empty:
         fig = px.scatter(st.session_state.ip_data, x="Performance", y="Importance", text="ประเด็น",
@@ -84,7 +86,6 @@ elif step == "Step 3: SWOT Analysis":
             if row['Importance'] >= 3 and row['Performance'] >= 3: auto_s.append(row['ประเด็น'])
             elif row['Importance'] >= 3 and row['Performance'] < 3: auto_w.append(row['ประเด็น'])
 
-    st.subheader("🏢 ปัจจัยภายใน (Internal Factors)")
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("**💪 จุดแข็ง (Strengths)**")
@@ -92,7 +93,7 @@ elif step == "Step 3: SWOT Analysis":
             for s in auto_s: st.success(f"✔️ {s}")
         new_man_s = st.text_area("➕ เพิ่มจุดแข็งอื่นๆ", value=st.session_state.manual_s, height=80)
         if new_man_s != st.session_state.manual_s:
-            st.session_state.manual_s, st.session_state.auto_generated = new_man_s, False
+            st.session_state.manual_s, st.session_state.auto_generated, st.session_state.auto_vision = new_man_s, False, False
             
     with col2:
         st.markdown("**⚠️ จุดอ่อน (Weaknesses)**")
@@ -100,7 +101,7 @@ elif step == "Step 3: SWOT Analysis":
             for w in auto_w: st.error(f"❌ {w}")
         new_man_w = st.text_area("➕ เพิ่มจุดอ่อนอื่นๆ", value=st.session_state.manual_w, height=80)
         if new_man_w != st.session_state.manual_w:
-            st.session_state.manual_w, st.session_state.auto_generated = new_man_w, False
+            st.session_state.manual_w, st.session_state.auto_generated, st.session_state.auto_vision = new_man_w, False, False
 
     st.markdown("---")
     st.subheader("🌍 ปัจจัยภายนอก (External Factors)")
@@ -108,11 +109,11 @@ elif step == "Step 3: SWOT Analysis":
     with col3:
         new_opps = st.text_area("🌟 โอกาส (Opportunities)", value=st.session_state.opps, height=120)
         if new_opps != st.session_state.opps:
-            st.session_state.opps, st.session_state.auto_generated = new_opps, False
+            st.session_state.opps, st.session_state.auto_generated, st.session_state.auto_vision = new_opps, False, False
     with col4:
         new_threats = st.text_area("🔥 อุปสรรค (Threats)", value=st.session_state.threats, height=120)
         if new_threats != st.session_state.threats:
-            st.session_state.threats, st.session_state.auto_generated = new_threats, False
+            st.session_state.threats, st.session_state.auto_generated, st.session_state.auto_vision = new_threats, False, False
 
 # --- STEP 4: TOWS MATRIX ---
 elif step == "Step 4: TOWS Matrix (วิเคราะห์กลยุทธ์)":
@@ -141,7 +142,7 @@ elif step == "Step 4: TOWS Matrix (วิเคราะห์กลยุทธ
         st.session_state.so_strat = f"1. ยกระดับ {st.session_state.s_txt} โดยใช้ประโยชน์จาก {o_kw}\n2. ขยายผลต้นแบบชุมชนเพื่อสร้างมูลค่าเพิ่มทางเศรษฐกิจ"
         st.session_state.wo_strat = f"1. บูรณาการความร่วมมือกับ {o_kw} เพื่อแก้ปัญหา {st.session_state.w_txt}\n2. พัฒนาศักยภาพและเสริมทักษะเทคโนโลยีให้ผู้นำชุมชน"
         st.session_state.st_strat = f"1. ใช้ความเข้มแข็งของ {st.session_state.s_txt} เป็นเกราะป้องกัน {t_kw}\n2. สร้างเครือข่ายเฝ้าระวังระดับตำบล"
-        st.session_state.wt_strat = f"1. ปรับโครงสร้าง {st.session_state.w_txt} เพื่อลดความเสี่ยงจาก {t_kw}\n2. ชะลอกิจกรรมที่มีความเสี่ยงและเน้นการรวมกลุ่มช่วยเหลือเกื้อกูล"
+        st.session_state.wt_strat = f"1. ปรับโครงสร้าง {st.session_state.w_txt} เพื่อลดความเสี่ยงจาก {t_kw}\n2. ชะลอกิจกรรมที่มีความเสี่ยงและเน้นการรวมกลุ่ม"
         st.session_state.auto_generated = True
 
     col1, col2 = st.columns(2)
@@ -149,6 +150,7 @@ elif step == "Step 4: TOWS Matrix (วิเคราะห์กลยุทธ
     with col2: st.session_state.wo_strat = st.text_area("🛠️ เชิงแก้ไข (WO) - สรุปเป็นข้อ", value=st.session_state.wo_strat, height=130)
     with col1: st.session_state.st_strat = st.text_area("🛡️ เชิงป้องกัน (ST) - สรุปเป็นข้อ", value=st.session_state.st_strat, height=130)
     with col2: st.session_state.wt_strat = st.text_area("⚠️ เชิงรับ (WT) - สรุปเป็นข้อ", value=st.session_state.wt_strat, height=130)
+    
     if st.button("🔄 ประมวลผลกลยุทธ์ใหม่"):
         st.session_state.auto_generated = False
         st.rerun()
@@ -157,15 +159,32 @@ elif step == "Step 4: TOWS Matrix (วิเคราะห์กลยุทธ
 elif step == "Step 5: วิเคราะห์ทิศทางและวิสัยทัศน์":
     st.header("🧭 ขั้นตอนที่ 5: วิเคราะห์ทิศทางการพัฒนาและเป้าประสงค์")
     
-    # ระบบวิเคราะห์ทิศทางอัตโนมัติจากข้อมูล Step 4
+    def ex_kw(text): return [l.replace('-','').strip() for l in text.split('\n') if l.strip()][0] if text else "ความท้าทายภายนอก"
+    o_kw = ex_kw(st.session_state.opps)
+    t_kw = ex_kw(st.session_state.threats)
+    
     st.subheader("💡 บทวิเคราะห์ทิศทางการพัฒนา (Strategic Direction Analysis)")
-    direction_analysis = f"จากการประมวลผลข้อมูล TOWS Matrix ทิศทางหลักที่ควรให้ความสำคัญในระยะนี้ คือการนำทุนชุมชน ได้แก่ **'{st.session_state.s_txt}'** มาเป็นตัวขับเคลื่อนหลัก (Growth Engine) ผสานกับนโยบายภาครัฐ ในขณะเดียวกันต้องเร่งอุดช่องโหว่ด้าน **'{st.session_state.w_txt}'** ด้วยการสร้างภาคีเครือข่าย เพื่อสร้างภูมิคุ้มกันต่อบริบทความเปลี่ยนแปลงของพื้นที่"
+    direction_analysis = f"จากการวิเคราะห์ TOWS Matrix ทิศทางที่ควรพัฒนาอย่างเร่งด่วน คือการขับเคลื่อนผ่านจุดแข็งด้าน **{st.session_state.s_txt}** เพื่อฉวยโอกาสจาก **{o_kw}** ควบคู่ไปกับการบูรณาการภาคีเครือข่ายเพื่อยกระดับจุดอ่อนเรื่อง **{st.session_state.w_txt}** ให้มีความเข้มแข็ง สามารถรับมือกับ **{t_kw}** ได้อย่างยั่งยืน"
     st.info(direction_analysis)
     
     st.markdown("---")
+    
+    if st.button("✨ วิเคราะห์วิสัยทัศน์และตัวชี้วัดอัตโนมัติ (จากกลยุทธ์)"):
+        # ร่างวิสัยทัศน์จากจุดแข็งและโอกาส
+        st.session_state.vision = f"ยกระดับ {st.session_state.s_txt} สู่ความเข้มแข็ง ด้วยวิถี 'ฮ่องสอน ฮอมฮัก' พร้อมรองรับ {o_kw} อย่างยั่งยืน"
+        
+        # ร่างพันธกิจจากกลยุทธ์ SO, WO, ST
+        st.session_state.mission = f"1. (เชิงรุก) ต่อยอดและพัฒนา {st.session_state.s_txt} สร้างมูลค่าเพิ่มทางเศรษฐกิจชุมชน\n2. (เชิงแก้ไข) บูรณาการเครือข่ายเพื่อยกระดับขีดความสามารถด้าน {st.session_state.w_txt}\n3. (เชิงป้องกัน) สร้างภูมิคุ้มกันระดับพื้นที่เพื่อรับมือกับ {t_kw}"
+        
+        # ร่าง KPI อิงจากจุดแข็ง/จุดอ่อน
+        st.session_state.kpi = f"1. กลุ่มเป้าหมายด้าน {st.session_state.s_txt} มีรายได้เฉลี่ยเพิ่มขึ้นร้อยละ 5 ต่อปี\n2. ระดับความสำเร็จของการพัฒนาและแก้ปัญหาด้าน {st.session_state.w_txt} ผ่านเกณฑ์มาตรฐาน"
+        
+        st.session_state.auto_vision = True
+        st.rerun()
+
     st.session_state.vision = st.text_input("👁️ วิสัยทัศน์ (Vision)", value=st.session_state.vision)
     st.session_state.mission = st.text_area("🚀 พันธกิจ (Mission)", value=st.session_state.mission, height=100)
-    st.session_state.kpi = st.text_input("📈 ตัวชี้วัดเชิงยุทธศาสตร์ (KPIs)", value=st.session_state.kpi)
+    st.session_state.kpi = st.text_area("📈 ตัวชี้วัดเชิงยุทธศาสตร์ (KPIs)", value=st.session_state.kpi, height=80)
 
 # --- STEP 6: ACTION PLAN ---
 elif step == "Step 6: โครงการสำคัญ (Action Plan)":
@@ -196,9 +215,10 @@ elif step == "Step 7: สรุปและ Export PDF":
     st.header("📊 ขั้นตอนที่ 7: สรุปแผนพัฒนาเชิงพื้นที่แบบบูรณาการ")
     
     with st.container(border=True):
-        st.subheader("📍 1. วิสัยทัศน์และเป้าประสงค์")
+        st.subheader("📍 1. วิสัยทัศน์ พันธกิจ และเป้าประสงค์")
         st.write(f"**วิสัยทัศน์:** {st.session_state.vision}")
-        st.write(f"**ตัวชี้วัด:** {st.session_state.kpi}")
+        st.markdown(f"**พันธกิจ:**\n{st.session_state.mission}")
+        st.markdown(f"**ตัวชี้วัด:**\n{st.session_state.kpi}")
         
         st.subheader("🧠 2. กลยุทธ์การพัฒนา (TOWS Strategy)")
         st.success(f"**🎯 เชิงรุก (SO):**\n{st.session_state.so_strat}")
@@ -227,7 +247,7 @@ elif step == "Step 7: สรุปและ Export PDF":
         pdf.set_font('THSarabunNew', '', 16) if os.path.exists("THSarabunNew.ttf") else pdf.set_font('Arial', '', 12)
         
         pdf.cell(200, 10, txt="1. ทิศทาง วิสัยทัศน์ และเป้าประสงค์:", ln=True)
-        pdf.multi_cell(0, 8, txt=f"วิสัยทัศน์: {st.session_state.vision}\nตัวชี้วัด (KPIs): {st.session_state.kpi}")
+        pdf.multi_cell(0, 8, txt=f"[วิสัยทัศน์]\n{st.session_state.vision}\n\n[พันธกิจ]\n{st.session_state.mission}\n\n[ตัวชี้วัด (KPIs)]\n{st.session_state.kpi}")
         pdf.ln(2)
 
         pdf.cell(200, 10, txt="2. กลยุทธ์การพัฒนา (TOWS Strategy):", ln=True)
