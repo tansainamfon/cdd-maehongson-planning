@@ -11,8 +11,20 @@ st.set_page_config(page_title="Integrated CD Planner (Mae Hong Son)", layout="wi
 if 'ip_data' not in st.session_state: st.session_state.ip_data = pd.DataFrame(columns=['ประเด็น', 'Importance', 'Performance'])
 if 'manual_s' not in st.session_state: st.session_state.manual_s = ""
 if 'manual_w' not in st.session_state: st.session_state.manual_w = ""
-if 'opps' not in st.session_state: st.session_state.opps = "- นโยบายส่งเสริมการท่องเที่ยวเมืองรอง\n- การขับเคลื่อนแนวคิด 'ฮ่องสอน ฮอมฮัก'"
-if 'threats' not in st.session_state: st.session_state.threats = "- สภาพภูมิประเทศเป็นภูเขาสูงชัน\n- ปัญหาหมอกควันไฟป่า (PM 2.5)"
+
+# อัปเกรด โอกาส (O) ให้สอดคล้องกับ 3 แผนหลัก + งาน พช.
+if 'opps' not in st.session_state: 
+    st.session_state.opps = """- นโยบายลดความเหลื่อมล้ำและแก้ปัญหาความยากจน (ยุทธศาสตร์ชาติ 20 ปี / ศจพ.)
+- หมุดหมายที่ 8 และ 9 มุ่งเป้าเศรษฐกิจฐานรากและขจัดความยากจนข้ามรุ่น (แผนพัฒนาฯ ฉบับที่ 13)
+- แผนจังหวัดแม่ฮ่องสอนส่งเสริมการท่องเที่ยวเชิงนิเวศ/วัฒนธรรม หนุนงาน OTOP นวัตวิถี
+- แนวคิด 'ฮ่องสอน ฮอมฮัก' ที่สอดคล้องกับการสร้างชุมชนเข้มแข็งของกรมการพัฒนาชุมชน"""
+
+# อัปเกรด อุปสรรค (T) ให้สอดคล้องกับบริบทพื้นที่ + มหภาค
+if 'threats' not in st.session_state: 
+    st.session_state.threats = """- สภาพภูมิประเทศภูเขาสูงชัน ทำให้ต้นทุนโลจิสติกส์สินค้า OTOP สูง
+- ปัญหาหมอกควันไฟป่า (PM 2.5) กระทบฤดูกาลท่องเที่ยวและรายได้ชุมชน
+- โครงสร้างประชากรเข้าสู่สังคมสูงวัย (Aging Society) ขาดแคลนคนรุ่นใหม่สืบสานสัมมาชีพ
+- ความผันผวนทางเศรษฐกิจและค่าครองชีพ กระทบกำลังซื้อระดับฐานราก"""
 
 # ตัวแปรเก็บข้อความประมวลผล
 if 's_txt' not in st.session_state: st.session_state.s_txt = "ทุนชุมชน"
@@ -27,7 +39,7 @@ if 'auto_vision' not in st.session_state: st.session_state.auto_vision = False
 # Session State สำหรับ Step 5 และ 6
 if 'vision' not in st.session_state: st.session_state.vision = "มุ่งสู่องค์กรแห่งความสุข 'ฮ่องสอน ฮอมฮัก' ชุมชนเข้มแข็ง เศรษฐกิจฐานรากมั่นคง"
 if 'mission' not in st.session_state: st.session_state.mission = "1. ยกระดับคุณภาพชีวิตชุมชน\n2. ส่งเสริมสัมมาชีพและรายได้\n3. บูรณาการภาคีเครือข่ายการพัฒนา"
-if 'kpi' not in st.session_state: st.session_state.kpi = "1. รายได้เฉลี่ยของชุมชนเพิ่มขึ้น\n2. ระดับความสุขของคนในองค์กรและชุมชนผ่านเกณฑ์"
+if 'kpi' not in st.session_state: st.session_state.kpi = "1. รายได้เฉลี่ยของครัวเรือนเป้าหมาย (ศจพ.) เพิ่มขึ้น\n2. ระดับความสุขของคนในองค์กรและชุมชนผ่านเกณฑ์"
 if 'projects' not in st.session_state: st.session_state.projects = pd.DataFrame(columns=['ชื่อโครงการ', 'งบประมาณ', 'กลยุทธ์ที่รองรับ'])
 
 # --- Sidebar: Navigation ---
@@ -36,7 +48,7 @@ st.sidebar.caption("สำนักงานพัฒนาชุมชนจั
 step = st.sidebar.radio("เลือกขั้นตอนการทำงาน", [
     "Step 1: IP Matrix (ปัจจัยภายใน)",
     "Step 2: Policy Alignment",
-    "Step 3: SWOT Analysis",
+    "Step 3: SWOT Analysis (วิเคราะห์มหภาค)",
     "Step 4: TOWS Matrix (วิเคราะห์กลยุทธ์)",
     "Step 5: วิเคราะห์ทิศทางและวิสัยทัศน์",
     "Step 6: โครงการสำคัญ (Action Plan)",
@@ -72,12 +84,16 @@ elif step == "Step 2: Policy Alignment":
     if not st.session_state.ip_data.empty:
         for index, row in st.session_state.ip_data.iterrows():
             with st.expander(f"📌 ประเด็นวิเคราะห์: {row['ประเด็น']}"):
-                st.markdown(f"* 🏢 **แผนพัฒนาจังหวัดแม่ฮ่องสอน:** ยกระดับคุณภาพชีวิตและส่งเสริมเศรษฐกิจชุมชน\n* 📊 **แผนพัฒนาเศรษฐกิจฯ ฉบับที่ 13:** หมุดหมายที่ 8\n* 🇹🇭 **แผนยุทธศาสตร์ชาติ 20 ปี:** ยุทธศาสตร์ที่ 4")
+                st.markdown(f"""
+                * 🏢 **แผนพัฒนาจังหวัดแม่ฮ่องสอน:** ยกระดับคุณภาพชีวิตและส่งเสริมเศรษฐกิจชุมชน 
+                * 📊 **แผนพัฒนาเศรษฐกิจฯ ฉบับที่ 13:** หมุดหมายที่ 8 (เมืองน่าอยู่) และ 9 (ขจัดความยากจนข้ามรุ่น ศจพ.)
+                * 🇹🇭 **แผนยุทธศาสตร์ชาติ 20 ปี:** ยุทธศาสตร์ที่ 4 (สร้างโอกาสและความเสมอภาคทางสังคม)
+                """)
     else:
         st.warning("กรุณากรอกข้อมูลใน Step 1 ก่อน")
 
 # --- STEP 3: SWOT ANALYSIS ---
-elif step == "Step 3: SWOT Analysis":
+elif step == "Step 3: SWOT Analysis (วิเคราะห์มหภาค)":
     st.header("🔍 ขั้นตอนที่ 3: วิเคราะห์สภาพแวดล้อม (SWOT Analysis)")
     
     auto_s, auto_w = [], []
@@ -104,14 +120,15 @@ elif step == "Step 3: SWOT Analysis":
             st.session_state.manual_w, st.session_state.auto_generated, st.session_state.auto_vision = new_man_w, False, False
 
     st.markdown("---")
-    st.subheader("🌍 ปัจจัยภายนอก (External Factors)")
+    st.subheader("🌍 ปัจจัยภายนอก (Opportunities & Threats)")
+    st.info("💡 วิเคราะห์บูรณาการจากยุทธศาสตร์ชาติ 20 ปี, แผนพัฒนาเศรษฐกิจฯ ฉบับที่ 13, แผนจังหวัดแม่ฮ่องสอน และภารกิจกรมการพัฒนาชุมชน")
     col3, col4 = st.columns(2)
     with col3:
-        new_opps = st.text_area("🌟 โอกาส (Opportunities)", value=st.session_state.opps, height=120)
+        new_opps = st.text_area("🌟 โอกาส (Opportunities)", value=st.session_state.opps, height=250)
         if new_opps != st.session_state.opps:
             st.session_state.opps, st.session_state.auto_generated, st.session_state.auto_vision = new_opps, False, False
     with col4:
-        new_threats = st.text_area("🔥 อุปสรรค (Threats)", value=st.session_state.threats, height=120)
+        new_threats = st.text_area("🔥 อุปสรรค (Threats)", value=st.session_state.threats, height=250)
         if new_threats != st.session_state.threats:
             st.session_state.threats, st.session_state.auto_generated, st.session_state.auto_vision = new_threats, False, False
 
@@ -127,22 +144,25 @@ elif step == "Step 4: TOWS Matrix (วิเคราะห์กลยุทธ
         
         man_s_list = [s.strip() for s in st.session_state.manual_s.split('\n') if s.strip()]
         man_w_list = [w.strip() for w in st.session_state.manual_w.split('\n') if w.strip()]
-        
         all_s = auto_s + man_s_list
         all_w = auto_w + man_w_list
         
-        def ex_kw(text): return [l.replace('-','').strip() for l in text.split('\n') if l.strip()][0] if text else "โอกาสภายนอก"
+        # ฟังก์ชันสกัดคีย์เวิร์ดบรรทัดแรกให้กระชับขึ้น
+        def ex_kw(text): 
+            if not text: return "นโยบายภาครัฐ"
+            first_line = [l.replace('-','').strip() for l in text.split('\n') if l.strip()][0]
+            # ตัดคำยาวๆ ออกเอาแต่ใจความสำคัญ
+            return first_line.split('(')[0].strip()
         
         st.session_state.s_txt = " และ ".join(all_s) if all_s else "ทุนชุมชน"
         st.session_state.w_txt = " และ ".join(all_w) if all_w else "ข้อจำกัด"
         o_kw = ex_kw(st.session_state.opps)
         t_kw = ex_kw(st.session_state.threats)
         
-        # สรุปกลยุทธ์เป็นข้อๆ ที่ปฏิบัติได้จริง
-        st.session_state.so_strat = f"1. ยกระดับ {st.session_state.s_txt} โดยใช้ประโยชน์จาก {o_kw}\n2. ขยายผลต้นแบบชุมชนเพื่อสร้างมูลค่าเพิ่มทางเศรษฐกิจ"
-        st.session_state.wo_strat = f"1. บูรณาการความร่วมมือกับ {o_kw} เพื่อแก้ปัญหา {st.session_state.w_txt}\n2. พัฒนาศักยภาพและเสริมทักษะเทคโนโลยีให้ผู้นำชุมชน"
-        st.session_state.st_strat = f"1. ใช้ความเข้มแข็งของ {st.session_state.s_txt} เป็นเกราะป้องกัน {t_kw}\n2. สร้างเครือข่ายเฝ้าระวังระดับตำบล"
-        st.session_state.wt_strat = f"1. ปรับโครงสร้าง {st.session_state.w_txt} เพื่อลดความเสี่ยงจาก {t_kw}\n2. ชะลอกิจกรรมที่มีความเสี่ยงและเน้นการรวมกลุ่ม"
+        st.session_state.so_strat = f"1. ยกระดับ {st.session_state.s_txt} โดยใช้ประโยชน์จาก {o_kw}\n2. ขยายผล OTOP และสัมมาชีพชุมชนเพื่อสร้างรายได้ฐานราก"
+        st.session_state.wo_strat = f"1. บูรณาการแผนงาน/งบประมาณตาม {o_kw} เพื่อแก้ปัญหา {st.session_state.w_txt}\n2. พัฒนาทักษะผู้นำชุมชนขับเคลื่อน ศจพ. ให้พ้นความยากจน"
+        st.session_state.st_strat = f"1. ใช้ความเข้มแข็งของ {st.session_state.s_txt} เป็นเกราะป้องกัน {t_kw}\n2. สร้างเครือข่ายฮอมฮักเฝ้าระวังภัยพิบัติและเศรษฐกิจระดับตำบล"
+        st.session_state.wt_strat = f"1. ปรับโครงสร้าง {st.session_state.w_txt} เพื่อลดความเสี่ยงจาก {t_kw}\n2. มุ่งเน้นการพึ่งพาตนเองตามหลักปรัชญาของเศรษฐกิจพอเพียง"
         st.session_state.auto_generated = True
 
     col1, col2 = st.columns(2)
@@ -159,26 +179,23 @@ elif step == "Step 4: TOWS Matrix (วิเคราะห์กลยุทธ
 elif step == "Step 5: วิเคราะห์ทิศทางและวิสัยทัศน์":
     st.header("🧭 ขั้นตอนที่ 5: วิเคราะห์ทิศทางการพัฒนาและเป้าประสงค์")
     
-    def ex_kw(text): return [l.replace('-','').strip() for l in text.split('\n') if l.strip()][0] if text else "ความท้าทายภายนอก"
+    def ex_kw(text): 
+        if not text: return "สถานการณ์"
+        return [l.replace('-','').strip() for l in text.split('\n') if l.strip()][0].split('(')[0].strip()
+        
     o_kw = ex_kw(st.session_state.opps)
     t_kw = ex_kw(st.session_state.threats)
     
     st.subheader("💡 บทวิเคราะห์ทิศทางการพัฒนา (Strategic Direction Analysis)")
-    direction_analysis = f"จากการวิเคราะห์ TOWS Matrix ทิศทางที่ควรพัฒนาอย่างเร่งด่วน คือการขับเคลื่อนผ่านจุดแข็งด้าน **{st.session_state.s_txt}** เพื่อฉวยโอกาสจาก **{o_kw}** ควบคู่ไปกับการบูรณาการภาคีเครือข่ายเพื่อยกระดับจุดอ่อนเรื่อง **{st.session_state.w_txt}** ให้มีความเข้มแข็ง สามารถรับมือกับ **{t_kw}** ได้อย่างยั่งยืน"
+    direction_analysis = f"จากการวิเคราะห์ TOWS Matrix ทิศทางที่ควรพัฒนาอย่างเร่งด่วน คือการขับเคลื่อนผ่านจุดแข็งด้าน **{st.session_state.s_txt}** เพื่อขยายผลรับ **{o_kw}** ตามนโยบายชาติ ควบคู่ไปกับการบูรณาการภาคีเครือข่าย พช. เพื่อยกระดับจุดอ่อนเรื่อง **{st.session_state.w_txt}** ให้มีความเข้มแข็ง สามารถรับมือกับอุปสรรคด้าน **{t_kw}** ได้อย่างยั่งยืน"
     st.info(direction_analysis)
     
     st.markdown("---")
     
     if st.button("✨ วิเคราะห์วิสัยทัศน์และตัวชี้วัดอัตโนมัติ (จากกลยุทธ์)"):
-        # ร่างวิสัยทัศน์จากจุดแข็งและโอกาส
-        st.session_state.vision = f"ยกระดับ {st.session_state.s_txt} สู่ความเข้มแข็ง ด้วยวิถี 'ฮ่องสอน ฮอมฮัก' พร้อมรองรับ {o_kw} อย่างยั่งยืน"
-        
-        # ร่างพันธกิจจากกลยุทธ์ SO, WO, ST
-        st.session_state.mission = f"1. (เชิงรุก) ต่อยอดและพัฒนา {st.session_state.s_txt} สร้างมูลค่าเพิ่มทางเศรษฐกิจชุมชน\n2. (เชิงแก้ไข) บูรณาการเครือข่ายเพื่อยกระดับขีดความสามารถด้าน {st.session_state.w_txt}\n3. (เชิงป้องกัน) สร้างภูมิคุ้มกันระดับพื้นที่เพื่อรับมือกับ {t_kw}"
-        
-        # ร่าง KPI อิงจากจุดแข็ง/จุดอ่อน
-        st.session_state.kpi = f"1. กลุ่มเป้าหมายด้าน {st.session_state.s_txt} มีรายได้เฉลี่ยเพิ่มขึ้นร้อยละ 5 ต่อปี\n2. ระดับความสำเร็จของการพัฒนาและแก้ปัญหาด้าน {st.session_state.w_txt} ผ่านเกณฑ์มาตรฐาน"
-        
+        st.session_state.vision = f"ยกระดับ {st.session_state.s_txt} สู่ชุมชนเข้มแข็ง ด้วยวิถี 'ฮ่องสอน ฮอมฮัก' เพื่อขจัดความยากจนและลดความเหลื่อมล้ำอย่างยั่งยืน"
+        st.session_state.mission = f"1. (เชิงรุก) ต่อยอดและพัฒนา {st.session_state.s_txt} สร้างเศรษฐกิจฐานราก\n2. (เชิงแก้ไข) บูรณาการเครือข่าย พช. เพื่อยกระดับขีดความสามารถด้าน {st.session_state.w_txt}\n3. (เชิงป้องกัน) สร้างภูมิคุ้มกันพึ่งพาตนเองตามหลักปรัชญาของเศรษฐกิจพอเพียง"
+        st.session_state.kpi = f"1. ครัวเรือนตกเกณฑ์ (ศจพ.) ด้าน {st.session_state.w_txt} มีคุณภาพชีวิตดีขึ้น\n2. กลุ่มเป้าหมายด้าน {st.session_state.s_txt} มีรายได้เฉลี่ยเพิ่มขึ้นตามเกณฑ์ จปฐ."
         st.session_state.auto_vision = True
         st.rerun()
 
